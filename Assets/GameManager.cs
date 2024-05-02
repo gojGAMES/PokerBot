@@ -14,8 +14,9 @@ public class GameManager : MonoBehaviour
     public Hand RobotHand = new Hand();
 
     private HashSet<Card> drawnCards = new HashSet<Card>();
+    private bool[] swapCards =  {false, false, false, false, false };
 
-    // Start is called before the first frame update
+// Start is called before the first frame update
     void Start()
     {
         
@@ -76,8 +77,10 @@ public class GameManager : MonoBehaviour
             hand.Add(card);
             drawnCards.Add(card);
         }
+        
     }
 
+    //todo: Maybe move this to the hand class?
     void AnalyzeHand(Hand hand)
     {
         bool flush;
@@ -123,8 +126,146 @@ public class GameManager : MonoBehaviour
             }
             return;
         }
-        
+
+        if (suits.Count > 1)
+        {
+            flush = false;
+        }
+        else
+        {
+            flush = true;
+        }
+
+        straight = ContainsStraight(hand.cards);
+        if (!flush && !straight)
+        {
+            hand.HandType = HandType.high;
+            return;
+        }
+
+        if (straight && !flush)
+        {
+            hand.HandType = HandType.straight;
+        }
+
+        if (!straight && flush)
+        {
+            hand.HandType = HandType.flush;
+        }
+
+        if (hand.GetHighestRank() == 13)
+        {
+            hand.HandType = HandType.royal;
+        }
+        else
+        {
+            hand.HandType = HandType.straightflush;
+        }
+
     }
-    
-    
+
+    bool ContainsStraight(List<Card> cards)
+    {
+        int lowestRank = 13;
+        for (int i = 0; i < cards.Count; i++)
+        {
+            if (cards[i].Rank < lowestRank)
+            {
+                lowestRank = cards[i].Rank;
+            }
+        }
+
+        for (int i = lowestRank; i < lowestRank + cards.Count; i++)
+        {
+            bool iFound = false;
+            for (int j = 0; j < cards.Count; j++)
+            {
+                if (i == cards[j].Rank)
+                {
+                    iFound = true;
+                    break;
+                }
+            }
+
+            if (iFound = false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void SwapPlayerHand()
+    {
+        if (Input.GetKey(KeyCode.Q))
+        {
+            swapCards[0] = !swapCards[0];
+        }
+        if (Input.GetKey(KeyCode.W))
+        {
+            swapCards[1] = !swapCards[1];
+        }
+        if (Input.GetKey(KeyCode.E))
+        {
+            swapCards[2] = !swapCards[2];
+        }
+        if (Input.GetKey(KeyCode.R))
+        {
+            swapCards[3] = !swapCards[3];
+        }
+        if (Input.GetKey(KeyCode.T))
+        {
+            swapCards[4] = !swapCards[4];
+        }
+
+        if (Input.GetButtonDown("Submit"))
+        {
+            SwapCards(PlayerHand);
+            phase++;
+        }
+    }
+
+    void SwapCards(Hand hand)
+    {
+        for (int i = 4; i > 0; i--)
+        {
+            if (swapCards[i])
+            {
+                hand.cards.RemoveAt(i);
+            }
+        }
+
+        if (hand.cards.Count == 5)
+        {
+            return;
+        }
+
+        GenerateHand(hand.cards);
+    }
+
+    void DetermineWinner()
+    {
+        if ((int)PlayerHand.HandType > (int)RobotHand.HandType)
+        {
+            Debug.Log("Player Wins");
+        }
+        if ((int)PlayerHand.HandType < (int)RobotHand.HandType)
+        {
+            Debug.Log("Robot Wins");
+        }
+        
+        /// TIEBREAKERS HERE
+        /// use a switch statement to run through the various tiebreaker scenarios
+        /// then also add submit or smth
+    }
+
+    void ResetToNewRound()
+    {
+        phase = 0;
+        drawnCards.Clear();
+        PlayerHand.ResetHand();
+        RobotHand.ResetHand();
+        swapCards = default;
+    }
 }
