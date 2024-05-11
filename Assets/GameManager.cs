@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private int ante = 50;
 
-    private int phase = 0;
+    [SerializeField] private int phase = 0;
 
     // private List<Card> PlayerHand = new List<Card>();
     // private List<Card> RobotHand = new List<Card>();
@@ -14,8 +14,9 @@ public class GameManager : MonoBehaviour
     public Hand RobotHand;
     public CardRenderer CardRenderer;
 
-    private HashSet<Card> drawnCards = new HashSet<Card>();
-    private bool[] swapCards =  {false, false, false, false, false };
+    private static CardEqualityComparer _cardEqualityComparer = new();
+    private HashSet<Card> drawnCards = new HashSet<Card>(_cardEqualityComparer);
+    [SerializeField] private bool[] swapCards =  {false, false, false, false, false };
 
 // Start is called before the first frame update
     void Start()
@@ -26,7 +27,20 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            PlayerHand.PrintHand();
+        }
+
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            Debug.Log("The drawn Cards set contains " + drawnCards.Count + " cards: ");
+            foreach (Card card in drawnCards)
+            {
+                Debug.Log(card.Rank + " of " + card.Suit);
+            }
+        }
+        Game();
     }
 
     void Game()
@@ -53,13 +67,45 @@ public class GameManager : MonoBehaviour
         switch (phase)
         {
             case 0:
+                AnteUp();
                 break;
+            case 1:
+                GenerateHand(PlayerHand);
+                CardRenderer.RenderHand(PlayerHand);
+                GenerateHand(RobotHand);
+                AnalyzeHand(PlayerHand);
+                AnalyzeHand(RobotHand);
+                Debug.Log("Hands analyzed");
+                phase++;
+                break;
+            case 2:
+                Bet1();
+                break;
+            case 3:
+                SwapPlayerHand();
+                CardRenderer.RenderHand(PlayerHand);
+                break;
+            case 4:
+                AnalyzeHand(PlayerHand);
+                AnalyzeHand(RobotHand);
+                phase++;
+                break;
+            case 5:
+                Bet2();
+                break;
+            case 6:
+                DetermineWinner();
+                break;
+            case 7:
+                ResetToNewRound();
+                break;
+            
         }
     }
 
     void AnteUp()
     {
-        if (Input.GetButton("Confirm"))
+        if (Input.GetButtonDown("Confirm"))
         {
             Debug.Log("Anted Up");
             phase++;
@@ -79,12 +125,12 @@ public class GameManager : MonoBehaviour
             
             if (drawnCards.Contains(card))
             {
+                Debug.LogWarning("duplicate card drawn");
                 continue;
             }
             hand.Cards.Add(card);
             drawnCards.Add(card);
         }
-        CardRenderer.RenderHand(PlayerHand);
     }
 
     //todo: Maybe move this to the hand class?
@@ -203,32 +249,45 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    void Bet1()
+    {
+        if (Input.GetButtonDown("Confirm"))
+        {
+            Debug.Log("bet 1 complete");
+            phase++;
+        }
+    }
+
     void SwapPlayerHand()
     {
-        if (Input.GetKey(KeyCode.Q))
+        
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             swapCards[0] = !swapCards[0];
         }
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKeyDown(KeyCode.W))
         {
             swapCards[1] = !swapCards[1];
         }
-        if (Input.GetKey(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E))
         {
             swapCards[2] = !swapCards[2];
         }
-        if (Input.GetKey(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R))
         {
             swapCards[3] = !swapCards[3];
         }
-        if (Input.GetKey(KeyCode.T))
+        if (Input.GetKeyDown(KeyCode.T))
         {
             swapCards[4] = !swapCards[4];
         }
+        
+        CardRenderer.SwapVisual(swapCards);
 
         if (Input.GetButtonDown("Submit"))
         {
             SwapCards(PlayerHand);
+            CardRenderer.ResetSwapVisual();
             phase++;
         }
     }
@@ -251,8 +310,19 @@ public class GameManager : MonoBehaviour
         GenerateHand(hand);
     }
 
+    void Bet2()
+    {
+        if (Input.GetButtonDown("Confirm"))
+        {
+            Debug.Log("Anted Up");
+            phase++;
+        }
+    }
+
     void DetermineWinner()
     {
+        phase++;
+        
         if ((int)PlayerHand.HandType > (int)RobotHand.HandType)
         {
             Debug.Log("Player Wins");
@@ -578,14 +648,23 @@ public class GameManager : MonoBehaviour
                 Debug.Log("yes this is accounted for. i know this didnt happen naturally");
                 break;
         }
+
+        
     }
 
     void ResetToNewRound()
     {
+        if (!Input.GetButtonDown("Confirm"))
+        {
+            return;
+        }
         phase = 0;
         drawnCards.Clear();
         PlayerHand.ResetHand();
         RobotHand.ResetHand();
-        swapCards = default;
+        for (int i = 0; i < 5; i++)
+        {
+            swapCards[i] = false;
+        }
     }
 }

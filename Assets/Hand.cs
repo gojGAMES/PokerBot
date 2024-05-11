@@ -19,7 +19,7 @@ public enum HandType
 public class Hand : MonoBehaviour
 {
     public List<Card> Cards = new List<Card>();
-    public Dictionary<int, int> ranks; //syntax of rank as key
+    public Dictionary<int, int> ranks = new Dictionary<int, int>(); //syntax of rank as key
     public HandType HandType;
 
     void Sort()
@@ -44,5 +44,13 @@ public class Hand : MonoBehaviour
         Cards.Clear();
         ranks.Clear();
         HandType = default;
+    }
+
+    public void PrintHand()
+    {
+        foreach (Card card in Cards)
+        {
+            Debug.Log(card.Rank+" of " + card.Suit);
+        }
     }
 }

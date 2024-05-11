@@ -30,6 +30,29 @@ public class CardRenderer : MonoBehaviour
         }
     }
     
+    public void SwapVisual(bool[] swapOrNot) 
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            if (!swapOrNot[i])
+            {
+                cardImages[i].color = Color.white;
+            }
+            else
+            {
+                cardImages[i].color = Color.white * 0.5f;
+            }
+        }
+    }
+
+    public void ResetSwapVisual()
+    {
+        foreach (Image img in cardImages)
+        {
+            img.color = Color.white;
+        }
+    }
+    
     private Sprite SetSprite(Card card)
     {
         /// x1 = 11 + rank * (909 / 14)
