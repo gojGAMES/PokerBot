@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
 // Start is called before the first frame update
     void Start()
     {
-        
+        GenerateHand(PlayerHand);
     }
 
     // Update is called once per frame
@@ -65,17 +65,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void GenerateHand(List<Card> hand)
+    void GenerateHand(Hand hand)
     {
-        for (; hand.Count < 5; )
+        for (; hand.cards.Count < 5; )
         {
             Card card = new Card(Random.Range(0, 3), Random.Range(1, 13));
             if (drawnCards.Contains(card))
             {
                 continue;
             }
-            hand.Add(card);
+            hand.cards.Add(card);
             drawnCards.Add(card);
+            Instantiate(card, hand.transform);
         }
         
     }
@@ -85,26 +86,26 @@ public class GameManager : MonoBehaviour
     {
         bool flush;
         bool straight;
-        Dictionary<int, int> ranks = new Dictionary<int, int>();
+        
         Dictionary<Suit, int> suits = new Dictionary<Suit, int>();
         
         foreach (Card card in hand.cards)
         {
-            if (!ranks.TryAdd(card.Rank, 1))
-                ranks[card.Rank]++;
+            if (!hand.ranks.TryAdd(card.Rank, 1))
+                hand.ranks[card.Rank]++;
             if (!suits.TryAdd(card.Suit, 1))
                 suits[card.Suit]++;
         }
 
-        if (ranks.Count < 5)
+        if (hand.ranks.Count < 5)
         {
-            switch (ranks.Count)
+            switch (hand.ranks.Count)
             {
                 case 4:
                     hand.HandType = HandType.pair;
                     break;
                 case 3:
-                    if (ranks.ContainsValue(1))
+                    if (hand.ranks.ContainsValue(1))
                     {
                         hand.HandType = HandType.twopair;
                     }
@@ -114,7 +115,7 @@ public class GameManager : MonoBehaviour
                     }
                     break;
                 case 2:
-                    if (ranks.ContainsValue(1))
+                    if (hand.ranks.ContainsValue(1))
                     {
                         hand.HandType = HandType.foak;
                     }
@@ -241,7 +242,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        GenerateHand(hand.cards);
+        GenerateHand(hand);
     }
 
     void DetermineWinner()
@@ -249,15 +250,328 @@ public class GameManager : MonoBehaviour
         if ((int)PlayerHand.HandType > (int)RobotHand.HandType)
         {
             Debug.Log("Player Wins");
+            return;
         }
         if ((int)PlayerHand.HandType < (int)RobotHand.HandType)
         {
             Debug.Log("Robot Wins");
+            return;
         }
         
         /// TIEBREAKERS HERE
         /// use a switch statement to run through the various tiebreaker scenarios
         /// then also add submit or smth
+
+        int playerHighest = 0;
+        int robotHighest = 0;
+
+        int playerNextHighest = 0;
+        int robotNextHighest = 0;
+        
+        switch (PlayerHand.HandType)
+        {
+            case HandType.high:
+                foreach (Card card in PlayerHand.cards)
+                {
+                    if (card.Rank > playerHighest)
+                    {
+                        playerHighest = card.Rank;
+                    }
+                }
+                foreach (Card card in RobotHand.cards)
+                {
+                    if (card.Rank > playerHighest)
+                    {
+                        robotHighest = card.Rank;
+                    }
+                }
+
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player wins");
+                    break;
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                    break;
+                }
+                
+                Debug.Log("It's a tie");
+                break;
+            
+            
+            case HandType.pair:
+                foreach (KeyValuePair<int, int> kvp in PlayerHand.ranks)
+                {
+                    if (kvp.Value == 2)
+                    {
+                        playerHighest = kvp.Key;
+                        break;
+                    }
+                }
+                foreach (KeyValuePair<int, int> kvp in RobotHand.ranks)
+                {
+                    if (kvp.Value == 2)
+                    {
+                        robotHighest = kvp.Key;
+                        break;
+                    }
+                }
+
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            
+            case HandType.throak:
+                foreach (KeyValuePair<int, int> kvp in PlayerHand.ranks)
+                {
+                    if (kvp.Value == 3)
+                    {
+                        playerHighest = kvp.Key;
+                        break;
+                    }
+                }
+                foreach (KeyValuePair<int, int> kvp in RobotHand.ranks)
+                {
+                    if (kvp.Value == 3)
+                    {
+                        robotHighest = kvp.Key;
+                        break;
+                    }
+                }
+
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            
+            case HandType.foak:
+                foreach (KeyValuePair<int, int> kvp in PlayerHand.ranks)
+                {
+                    if (kvp.Value == 4)
+                    {
+                        playerHighest = kvp.Key;
+                        break;
+                    }
+                }
+                foreach (KeyValuePair<int, int> kvp in RobotHand.ranks)
+                {
+                    if (kvp.Value == 4)
+                    {
+                        robotHighest = kvp.Key;
+                        break;
+                    }
+                }
+
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            
+            case HandType.twopair:
+                foreach (KeyValuePair<int, int> kvp in PlayerHand.ranks)
+                {
+                    if (kvp.Value == 2)
+                    {
+                        if (kvp.Key > playerHighest)
+                        {
+                            playerNextHighest = playerHighest;
+                            playerHighest = kvp.Key;
+                        }
+                        else
+                        {
+                            playerNextHighest = kvp.Key;
+                        }
+                    }
+                }
+                foreach (KeyValuePair<int, int> kvp in RobotHand.ranks)
+                {
+                    if (kvp.Value == 2)
+                    {
+                        if (kvp.Key > robotHighest)
+                        {
+                            robotNextHighest = robotHighest;
+                            robotHighest = kvp.Key;
+                        }
+                        else
+                        {
+                            robotNextHighest = kvp.Key;
+                        }
+                    }
+                }
+
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                    break;
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                    break;
+                }
+                
+                if (playerNextHighest > robotNextHighest)
+                {
+                    Debug.Log("Player Wins");
+                    break;
+                }
+
+                if (robotNextHighest > playerNextHighest)
+                {
+                    Debug.Log("Robot Wins");
+                    break;
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            
+            case HandType.house:
+                foreach (KeyValuePair<int, int> kvp in PlayerHand.ranks)
+                {
+                    if (kvp.Value == 3)
+                    {
+                        playerHighest = kvp.Key;
+                        break;
+                    }
+                }
+                
+                foreach (KeyValuePair<int, int> kvp in RobotHand.ranks)
+                {
+                    if (kvp.Value == 3)
+                    {
+                        robotHighest = kvp.Key;
+                        break;
+                    }
+                }
+                
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                    break;
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                    break;
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            
+            case HandType.straight:
+                foreach (Card card in PlayerHand.cards)
+                {
+                    if (card.Rank > playerHighest)
+                        playerHighest = card.Rank;
+                }
+                foreach (Card card in RobotHand.cards)
+                {
+                    if (card.Rank > robotHighest)
+                        robotHighest = card.Rank;
+                }
+                
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                    break;
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                    break;
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            
+            case HandType.flush:
+                foreach (Card card in PlayerHand.cards)
+                {
+                    if (card.Rank > playerHighest)
+                        playerHighest = card.Rank;
+                }
+                foreach (Card card in RobotHand.cards)
+                {
+                    if (card.Rank > robotHighest)
+                        robotHighest = card.Rank;
+                }
+                
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                    break;
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                    break;
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            
+            case HandType.straightflush:
+                foreach (Card card in PlayerHand.cards)
+                {
+                    if (card.Rank > playerHighest)
+                        playerHighest = card.Rank;
+                }
+                foreach (Card card in RobotHand.cards)
+                {
+                    if (card.Rank > robotHighest)
+                        robotHighest = card.Rank;
+                }
+                
+                if (playerHighest > robotHighest)
+                {
+                    Debug.Log("Player Wins");
+                    break;
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    Debug.Log("Robot Wins");
+                    break;
+                }
+
+                Debug.Log("It's a tie");
+                break;
+            case HandType.royal:
+                Debug.Log("yes this is accounted for. i know this didnt happen naturally");
+                break;
+        }
     }
 
     void ResetToNewRound()

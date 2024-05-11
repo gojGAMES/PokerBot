@@ -5,62 +5,43 @@ using UnityEngine;
 
 public enum Suit
 {
-    spades,
+    spades, 
     clubs,
-    hearts,
-    diamond
+    diamond,
+    hearts
 }
 
-public enum HandType
+public class Card : MonoBehaviour
 {
-    high,
-    pair,
-    twopair,
-    throak,
-    straight,
-    flush,
-    house,
-    foak,
-    straightflush,
-    royal
-}
-public class Card
-{
+    private readonly Vector2 cardSpriteSize = new Vector2(42f, 60f);
+    
     public Suit Suit;
     public int Rank;
+    public SpriteRenderer SpriteRenderer;
+    public Texture2D Sprites;
 
     public Card(int suit, int rank)
     {
         Suit = (Suit) suit;
         Rank = rank;
     }
-}
 
-public class Hand
-{
-    public List<Card> cards;
-    public HandType HandType;
-
-    void Sort()
+    public void SetSprite()
     {
-        
-    }
+        /// x1 = 11 + rank * (909 / 14)
+        /// y1 = 2 + suit * (259 / 4)
+        /// x2 = x1 + 42
+        /// y2 = y1 + 60
+        ///
+        Rect rect = new Rect(new Vector2(11f + Rank * (909f/14f), 2f + (float) Suit * (259f/4f)), cardSpriteSize);
 
-    public int GetHighestRank()
-    {
-        int highest = 0;
-        foreach (Card card in cards)
+        if (Rank == 13)
         {
-            if (card.Rank > highest)
-                highest = card.Rank;
+            rect.x = 11f;
         }
-
-        return highest;
-    }
-
-    public void ResetHand()
-    {
-        cards.Clear();
-        HandType = default;
+        
+        SpriteRenderer.sprite = Sprite.Create(Sprites, rect, new Vector2(0.5f, 0.5f));
     }
 }
+
+
