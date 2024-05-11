@@ -6,7 +6,8 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private int ante = 50;
     [SerializeField] private int startingMoney = 1000;
-    [SerializeField] private 
+    [SerializeField] private int playerWallet;
+    [SerializeField] private int robotWallet;
     [SerializeField] private int phase = 0;
 
     // private List<Card> PlayerHand = new List<Card>();

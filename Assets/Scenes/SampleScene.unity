@@ -955,9 +955,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ante: 50
+  startingMoney: 1000
+  playerWallet: 0
+  robotWallet: 0
+  phase: 0
   PlayerHand: {fileID: 1510150554}
   RobotHand: {fileID: 1760124391}
   CardRenderer: {fileID: 467132880}
+  swapCards: 0000000000
 --- !u!4 &2010354318
 Transform:
   m_ObjectHideFlags: 0
