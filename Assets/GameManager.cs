@@ -10,8 +10,9 @@ public class GameManager : MonoBehaviour
 
     // private List<Card> PlayerHand = new List<Card>();
     // private List<Card> RobotHand = new List<Card>();
-    public Hand PlayerHand = new Hand();
-    public Hand RobotHand = new Hand();
+    public Hand PlayerHand;
+    public Hand RobotHand;
+    public CardRenderer CardRenderer;
 
     private HashSet<Card> drawnCards = new HashSet<Card>();
     private bool[] swapCards =  {false, false, false, false, false };
@@ -67,18 +68,23 @@ public class GameManager : MonoBehaviour
 
     void GenerateHand(Hand hand)
     {
-        for (; hand.cards.Count < 5; )
+        for (; hand.Cards.Count < 5; )
         {
             Card card = new Card(Random.Range(0, 3), Random.Range(1, 13));
+            //Card card = Instantiate(new GameObject("card " + hand.Cards.Count, typeof(Card)), Vector3.zero, Quaternion.identity).GetComponent(Card);
+            // GameObject go1 = new GameObject();
+            // go1.AddComponent<Card>();
+            // Card card = go1.GetComponent<Card>();
+            // card = new Card(Random.Range(0,3), Random.Range(1,13))
+            
             if (drawnCards.Contains(card))
             {
                 continue;
             }
-            hand.cards.Add(card);
+            hand.Cards.Add(card);
             drawnCards.Add(card);
-            Instantiate(card, hand.transform);
         }
-        
+        CardRenderer.RenderHand(PlayerHand);
     }
 
     //todo: Maybe move this to the hand class?
@@ -89,7 +95,7 @@ public class GameManager : MonoBehaviour
         
         Dictionary<Suit, int> suits = new Dictionary<Suit, int>();
         
-        foreach (Card card in hand.cards)
+        foreach (Card card in hand.Cards)
         {
             if (!hand.ranks.TryAdd(card.Rank, 1))
                 hand.ranks[card.Rank]++;
@@ -137,7 +143,7 @@ public class GameManager : MonoBehaviour
             flush = true;
         }
 
-        straight = ContainsStraight(hand.cards);
+        straight = ContainsStraight(hand.Cards);
         if (!flush && !straight)
         {
             hand.HandType = HandType.high;
@@ -188,7 +194,7 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            if (iFound = false)
+            if (iFound == false)
             {
                 return false;
             }
@@ -233,11 +239,11 @@ public class GameManager : MonoBehaviour
         {
             if (swapCards[i])
             {
-                hand.cards.RemoveAt(i);
+                hand.Cards.RemoveAt(i);
             }
         }
 
-        if (hand.cards.Count == 5)
+        if (hand.Cards.Count == 5)
         {
             return;
         }
@@ -271,14 +277,14 @@ public class GameManager : MonoBehaviour
         switch (PlayerHand.HandType)
         {
             case HandType.high:
-                foreach (Card card in PlayerHand.cards)
+                foreach (Card card in PlayerHand.Cards)
                 {
                     if (card.Rank > playerHighest)
                     {
                         playerHighest = card.Rank;
                     }
                 }
-                foreach (Card card in RobotHand.cards)
+                foreach (Card card in RobotHand.Cards)
                 {
                     if (card.Rank > playerHighest)
                     {
@@ -489,12 +495,12 @@ public class GameManager : MonoBehaviour
                 break;
             
             case HandType.straight:
-                foreach (Card card in PlayerHand.cards)
+                foreach (Card card in PlayerHand.Cards)
                 {
                     if (card.Rank > playerHighest)
                         playerHighest = card.Rank;
                 }
-                foreach (Card card in RobotHand.cards)
+                foreach (Card card in RobotHand.Cards)
                 {
                     if (card.Rank > robotHighest)
                         robotHighest = card.Rank;
@@ -516,12 +522,12 @@ public class GameManager : MonoBehaviour
                 break;
             
             case HandType.flush:
-                foreach (Card card in PlayerHand.cards)
+                foreach (Card card in PlayerHand.Cards)
                 {
                     if (card.Rank > playerHighest)
                         playerHighest = card.Rank;
                 }
-                foreach (Card card in RobotHand.cards)
+                foreach (Card card in RobotHand.Cards)
                 {
                     if (card.Rank > robotHighest)
                         robotHighest = card.Rank;
@@ -543,12 +549,12 @@ public class GameManager : MonoBehaviour
                 break;
             
             case HandType.straightflush:
-                foreach (Card card in PlayerHand.cards)
+                foreach (Card card in PlayerHand.Cards)
                 {
                     if (card.Rank > playerHighest)
                         playerHighest = card.Rank;
                 }
-                foreach (Card card in RobotHand.cards)
+                foreach (Card card in RobotHand.Cards)
                 {
                     if (card.Rank > robotHighest)
                         robotHighest = card.Rank;

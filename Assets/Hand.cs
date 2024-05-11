@@ -18,7 +18,7 @@ public enum HandType
 
 public class Hand : MonoBehaviour
 {
-    public List<Card> cards;
+    public List<Card> Cards = new List<Card>();
     public Dictionary<int, int> ranks; //syntax of rank as key
     public HandType HandType;
 
@@ -30,7 +30,7 @@ public class Hand : MonoBehaviour
     public int GetHighestRank()
     {
         int highest = 0;
-        foreach (Card card in cards)
+        foreach (Card card in Cards)
         {
             if (card.Rank > highest)
                 highest = card.Rank;
@@ -41,7 +41,7 @@ public class Hand : MonoBehaviour
 
     public void ResetHand()
     {
-        cards.Clear();
+        Cards.Clear();
         ranks.Clear();
         HandType = default;
     }
