@@ -1,0 +1,55 @@
+<mxfile host="app.diagrams.net" modified="2024-05-11T15:53:26.830Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0" etag="6IC_DtkadvYWezHjtT0b" version="24.4.0" type="device">
+  <diagram name="Page-1" id="dS50ByJ3nbsmhSJD4RVQ">
+    <mxGraphModel dx="1386" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="8kxPUzRAwx3cNDPXJXpk-1" target="8kxPUzRAwx3cNDPXJXpk-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-1" value="high card" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="20" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8kxPUzRAwx3cNDPXJXpk-2" target="8kxPUzRAwx3cNDPXJXpk-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-2" value="two pair" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="690" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-4" value="Switching lone always best" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="690" y="170" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8kxPUzRAwx3cNDPXJXpk-6" target="8kxPUzRAwx3cNDPXJXpk-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-6" value="throak" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-7" value="- pair&lt;div&gt;- flush&lt;/div&gt;&lt;div&gt;- straight&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="120" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-10" value="- full house or foak" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="170" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8kxPUzRAwx3cNDPXJXpk-12" target="8kxPUzRAwx3cNDPXJXpk-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-12" value="straight, flush, royal" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-13" value="just play it" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="200" y="170" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8kxPUzRAwx3cNDPXJXpk-15" target="8kxPUzRAwx3cNDPXJXpk-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-15" value="foak" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="365" y="30" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8kxPUzRAwx3cNDPXJXpk-16" value="doesnt matter really. switching does nothing but thin the deck" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="365" y="170" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
