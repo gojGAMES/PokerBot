@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,12 +10,19 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int startingMoney = 1000;
     [SerializeField] private int playerWallet;
     [SerializeField] private int robotWallet;
+    [SerializeField] private int pot;
     [SerializeField] private int phase = 0;
+    private char pick;
+    private int minimumBet;
+    private bool playerAllIn = false;
+    public Slider raiseSlider;
+    public TextMeshProUGUI raiseText;
 
     // private List<Card> PlayerHand = new List<Card>();
     // private List<Card> RobotHand = new List<Card>();
     public Hand PlayerHand;
     public Hand RobotHand;
+    public RobotController RobotController;
     public CardRenderer CardRenderer;
 
     private static CardEqualityComparer _cardEqualityComparer = new();
@@ -25,6 +34,10 @@ public class GameManager : MonoBehaviour
     {
         playerWallet = startingMoney;
         robotWallet = startingMoney;
+
+        minimumBet = ante;
+        pick = 'ඞ';
+        raiseSlider.gameObject.SetActive(false);
     }
 
     // Update is called once per frame
@@ -76,30 +89,37 @@ public class GameManager : MonoBehaviour
                 GenerateHand(PlayerHand);
                 CardRenderer.RenderHand(PlayerHand);
                 GenerateHand(RobotHand);
-                AnalyzeHand(PlayerHand);
-                AnalyzeHand(RobotHand);
+                PlayerHand.AnalyzeHand();
+                RobotHand.AnalyzeHand();
                 Debug.Log("Hands analyzed");
                 phase++;
                 break;
             case 2:
-                Bet1();
+                PlayerBet1();
                 break;
             case 3:
+                RobotBet1();
+                break;
+            case 4:
                 SwapPlayerHand();
                 CardRenderer.RenderHand(PlayerHand);
                 break;
-            case 4:
-                AnalyzeHand(PlayerHand);
-                AnalyzeHand(RobotHand);
+            case 5:
+                PlayerHand.AnalyzeHand();
+                RobotHand.AnalyzeHand();
                 phase++;
                 break;
-            case 5:
-                Bet2();
-                break;
             case 6:
-                DetermineWinner();
+                RobotBet2();
                 break;
             case 7:
+                PlayerBet1();
+                break;
+            
+            case 8:
+                DetermineWinner();
+                break;
+            case 9:
                 ResetToNewRound();
                 break;
             
@@ -108,8 +128,21 @@ public class GameManager : MonoBehaviour
 
     void AnteUp()
     {
+        if (playerWallet < ante)
+        {
+            Debug.Log("Player broke af, robot wins");
+        }
+
+        if (robotWallet < ante)
+        {
+            Debug.Log("robot broke, humanity wins");
+        }
+        
         if (Input.GetButtonDown("Confirm"))
         {
+            playerWallet -= ante;
+            robotWallet -= ante;
+            pot += 2 * ante;
             Debug.Log("Anted Up");
             phase++;
         }
@@ -135,130 +168,93 @@ public class GameManager : MonoBehaviour
             drawnCards.Add(card);
         }
     }
+    
 
-    //todo: Maybe move this to the hand class?
-    void AnalyzeHand(Hand hand)
+    void PlayerBet1()
     {
-        bool flush;
-        bool straight;
-        
-        Dictionary<Suit, int> suits = new Dictionary<Suit, int>();
-        
-        foreach (Card card in hand.Cards)
-        {
-            if (!hand.ranks.TryAdd(card.Rank, 1))
-                hand.ranks[card.Rank]++;
-            if (!suits.TryAdd(card.Suit, 1))
-                suits[card.Suit]++;
-        }
+        /// we got check/call and raise (and fold)
+        ///
+        ///
 
-        if (hand.ranks.Count < 5)
+        if (playerAllIn)
         {
-            switch (hand.ranks.Count)
-            {
-                case 4:
-                    hand.HandType = HandType.pair;
-                    break;
-                case 3:
-                    if (hand.ranks.ContainsValue(1))
-                    {
-                        hand.HandType = HandType.twopair;
-                    }
-                    else
-                    {
-                        hand.HandType = HandType.throak;
-                    }
-                    break;
-                case 2:
-                    if (hand.ranks.ContainsValue(1))
-                    {
-                        hand.HandType = HandType.foak;
-                    }
-                    else
-                    {
-                        hand.HandType = HandType.house;
-                    }
-                    break;
-            }
+            Debug.Log("player has already gone all in");
+            phase++;
             return;
         }
-
-        if (suits.Count > 1)
+        
+        if (Input.GetButtonDown("call"))
         {
-            flush = false;
+            pick = 'c';
+            raiseSlider.gameObject.SetActive(false);
         }
-        else
+        if (Input.GetButtonDown("raise"))
         {
-            flush = true;
+            pick = 'r';
+            raiseSlider.gameObject.SetActive(true);
         }
-
-        straight = ContainsStraight(hand.Cards);
-        if (!flush && !straight)
+        if (Input.GetButtonDown("fold"))
         {
-            hand.HandType = HandType.high;
-            return;
-        }
-
-        if (straight && !flush)
-        {
-            hand.HandType = HandType.straight;
+            pick = 'f';
+            raiseSlider.gameObject.SetActive(false);
         }
 
-        if (!straight && flush)
+        switch (pick)
         {
-            hand.HandType = HandType.flush;
-        }
-
-        if (hand.GetHighestRank() == 13)
-        {
-            hand.HandType = HandType.royal;
-        }
-        else
-        {
-            hand.HandType = HandType.straightflush;
-        }
-
-    }
-
-    bool ContainsStraight(List<Card> cards)
-    {
-        int lowestRank = 13;
-        for (int i = 0; i < cards.Count; i++)
-        {
-            if (cards[i].Rank < lowestRank)
-            {
-                lowestRank = cards[i].Rank;
-            }
-        }
-
-        for (int i = lowestRank; i < lowestRank + cards.Count; i++)
-        {
-            bool iFound = false;
-            for (int j = 0; j < cards.Count; j++)
-            {
-                if (i == cards[j].Rank)
+            case 'c':
+                playerWallet -= minimumBet;
+                pot += minimumBet;
+                Debug.Log("bet 1 complete");
+                phase++;
+                return;
+                break;
+            case 'r':
+                int sliderValue = (int)raiseSlider.value;
+                raiseText.text = "Raise: " + sliderValue;
+                if (sliderValue >= playerWallet)
                 {
-                    iFound = true;
-                    break;
+                    sliderValue = playerWallet;
+                    raiseText.text = "All in!!";
                 }
-            }
-
-            if (iFound == false)
-            {
-                return false;
-            }
+                
+                if (Input.GetButtonDown("Confirm"))
+                {
+                    if (sliderValue > minimumBet)
+                    {
+                        if (sliderValue == playerWallet)
+                        {
+                            playerAllIn = true;
+                        }
+                        minimumBet = sliderValue;
+                        playerWallet -= sliderValue;
+                        pot += sliderValue;
+                        phase++;
+                        raiseSlider.gameObject.SetActive(false);
+                        return;
+                    }
+                    Debug.Log("bet higher coward");
+                }
+                break;
+                case 'f':
+                    RobotWin(pot);
+                    ResetToNewRound();
+                    return;
+            case 'ඞ':
+                return;
+                break;
         }
-
-        return true;
-    }
-
-    void Bet1()
-    {
+        
         if (Input.GetButtonDown("Confirm"))
         {
             Debug.Log("bet 1 complete");
             phase++;
         }
+    }
+
+    void RobotBet1()
+    {
+        RobotController.Bet1();
+        phase++;
     }
 
     void SwapPlayerHand()
@@ -320,6 +316,12 @@ public class GameManager : MonoBehaviour
             Debug.Log("Anted Up");
             phase++;
         }
+    }
+
+    void RobotBet2()
+    {
+        RobotController.Bet2();
+        phase++;
     }
 
     void DetermineWinner()
@@ -655,6 +657,11 @@ public class GameManager : MonoBehaviour
         
     }
 
+    void RobotWin(int pot)
+    {
+        robotWallet += pot;
+    }
+
     void ResetToNewRound()
     {
         if (!Input.GetButtonDown("Confirm"))
@@ -669,5 +676,7 @@ public class GameManager : MonoBehaviour
         {
             swapCards[i] = false;
         }
+        pick = 'ඞ';
+        playerAllIn = false;
     }
 }
