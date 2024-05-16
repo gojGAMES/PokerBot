@@ -139,11 +139,15 @@ public class GameManager : MonoBehaviour
         if (playerWallet < ante)
         {
             Debug.Log("Player broke af, robot wins");
+            phase = 11;
+            return;
         }
 
         if (robotWallet < ante)
         {
             Debug.Log("robot broke, humanity wins");
+            phase = 11;
+            return;
         }
         
         if (Input.GetButtonDown("Confirm"))
@@ -244,7 +248,7 @@ public class GameManager : MonoBehaviour
                 }
                 break;
                 case 'f':
-                    RobotWin(pot);
+                    RobotWin();
                     ResetToNewRound();
                     return;
             case 'ඞ':
@@ -344,12 +348,12 @@ public class GameManager : MonoBehaviour
         
         if ((int)PlayerHand.HandType > (int)RobotHand.HandType)
         {
-            Debug.Log("Player Wins");
+            PlayerWin();
             return;
         }
         if ((int)PlayerHand.HandType < (int)RobotHand.HandType)
         {
-            Debug.Log("Robot Wins");
+            RobotWin();
             return;
         }
         
@@ -383,17 +387,17 @@ public class GameManager : MonoBehaviour
 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player wins");
+                    PlayerWin();
                     break;
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                     break;
                 }
                 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             
@@ -417,15 +421,15 @@ public class GameManager : MonoBehaviour
 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             case HandType.throak:
@@ -448,15 +452,15 @@ public class GameManager : MonoBehaviour
 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             case HandType.foak:
@@ -479,15 +483,15 @@ public class GameManager : MonoBehaviour
 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             case HandType.twopair:
@@ -524,29 +528,29 @@ public class GameManager : MonoBehaviour
 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                     break;
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                     break;
                 }
                 
                 if (playerNextHighest > robotNextHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                     break;
                 }
 
                 if (robotNextHighest > playerNextHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                     break;
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             case HandType.house:
@@ -570,17 +574,17 @@ public class GameManager : MonoBehaviour
                 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                     break;
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                     break;
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             case HandType.straight:
@@ -597,17 +601,17 @@ public class GameManager : MonoBehaviour
                 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                     break;
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                     break;
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             case HandType.flush:
@@ -624,17 +628,17 @@ public class GameManager : MonoBehaviour
                 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                     break;
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                     break;
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             
             case HandType.straightflush:
@@ -651,29 +655,41 @@ public class GameManager : MonoBehaviour
                 
                 if (playerHighest > robotHighest)
                 {
-                    Debug.Log("Player Wins");
+                    PlayerWin();
                     break;
                 }
 
                 if (robotHighest > playerHighest)
                 {
-                    Debug.Log("Robot Wins");
+                    RobotWin();
                     break;
                 }
 
-                Debug.Log("It's a tie");
+                Tie();
                 break;
             case HandType.royal:
                 Debug.Log("yes this is accounted for. i know this didnt happen naturally");
+                Tie();
                 break;
         }
 
         
     }
 
-    void RobotWin(int pot)
+    void RobotWin()
     {
         robotWallet += pot;
+    }
+
+    void PlayerWin()
+    {
+        playerWallet += pot;
+    }
+
+    void Tie()
+    {
+        playerWallet += pot / 2;
+        robotWallet += pot / 2;
     }
 
     void ResetToNewRound()
