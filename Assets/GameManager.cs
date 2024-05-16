@@ -1,9 +1,17 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
+public enum Bettings
+{
+    call,
+    fold,
+    raise
+}
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private int ante = 50;
@@ -110,7 +118,7 @@ public class GameManager : MonoBehaviour
                 phase++;
                 break;
             case 6:
-                RobotBet2();
+                RobotBet1();
                 break;
             case 7:
                 PlayerBet1();
@@ -253,7 +261,13 @@ public class GameManager : MonoBehaviour
 
     void RobotBet1()
     {
-        RobotController.Bet1();
+        switch (RobotController.Bet1())
+        {
+            case Bettings.call:
+                robotWallet -= minimumBet;
+                pot += minimumBet;
+                break;
+        }
         phase++;
     }
 
