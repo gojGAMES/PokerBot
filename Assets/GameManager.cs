@@ -708,5 +708,6 @@ public class GameManager : MonoBehaviour
         }
         pick = 'ඞ';
         playerAllIn = false;
+        minimumBet = ante;
     }
 }
