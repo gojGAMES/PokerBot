@@ -47,12 +47,14 @@ public class GameManager : MonoBehaviour
         minimumBet = ante;
         pick = 'ඞ';
         UIManager.RaiseSliderOnOff(false);
+        UIManager.ToggleBettingUI(false);
+        UIManager.DisplayEventBubble("Press enter to Ante up! ($"+ante+")");
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        /*if (Input.GetKeyDown(KeyCode.Space))
         {
             PlayerHand.PrintHand();
         }
@@ -64,7 +66,7 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log(card.Rank + " of " + card.Suit);
             }
-        }
+        }*/
         Game();
     }
 
@@ -103,6 +105,7 @@ public class GameManager : MonoBehaviour
                 RobotHand.AnalyzeHand();
                 Debug.Log("Hands analyzed");
                 phase++;
+                UIManager.ToggleBettingUI(true);
                 break;
             case 2:
                 PlayerBet1();
@@ -156,10 +159,8 @@ public class GameManager : MonoBehaviour
         {
             playerWallet -= ante;
             robotWallet -= ante;
-            pot += 2 * ante;
-            //todo: give in game indication
-            Debug.Log("Anted Up");
-            UIManager.UpdatePot(pot);
+            AddToPot(ante*2);
+            UIManager.DisplayEventBubble("The first round of betting commences. You can call, raise, or fold.");
             phase++;
         }
     }
@@ -192,6 +193,8 @@ public class GameManager : MonoBehaviour
         ///
         ///
 
+        return;
+        
         UIManager.UpdateCallText(minimumBet);
         
         if (playerAllIn)
@@ -205,6 +208,7 @@ public class GameManager : MonoBehaviour
         {
             pick = 'c';
             UIManager.RaiseSliderOnOff(false);
+            UIManager.ToggleBettingUI(false);
         }
         if (Input.GetButtonDown("raise"))
         {
@@ -215,6 +219,7 @@ public class GameManager : MonoBehaviour
         {
             pick = 'f';
             UIManager.RaiseSliderOnOff(false);
+            UIManager.ToggleBettingUI(false);
         }
 
         switch (pick)
@@ -243,8 +248,10 @@ public class GameManager : MonoBehaviour
                         AddToPot(sliderValue);
                         phase++;
                         UIManager.RaiseSliderOnOff(false);
+                        UIManager.ToggleBettingUI(false);
                         return;
                     }
+                    UIManager.DisplayEventBubble("The raise is lower than the minimum bet. Either call, fold, or increase your raise.");
                     Debug.Log("bet higher coward");
                 }
                 break;
@@ -255,12 +262,6 @@ public class GameManager : MonoBehaviour
             case 'ඞ':
                 return;
                 break;
-        }
-        
-        if (Input.GetButtonDown("Confirm"))
-        {
-            Debug.Log("bet 1 complete");
-            phase++;
         }
     }
 
@@ -302,7 +303,7 @@ public class GameManager : MonoBehaviour
         
         PlayerCardRenderer.SwapVisual(swapCards);
 
-        if (Input.GetButtonDown("Submit"))
+        if (Input.GetButtonDown("Confirm"))
         {
             SwapCards(PlayerHand);
             PlayerCardRenderer.ResetSwapVisual();
@@ -680,16 +681,25 @@ public class GameManager : MonoBehaviour
     void AddToPot(int value)
     {
         pot += value;
+        OnTransaction();
+    }
+
+    void OnTransaction()
+    {
         UIManager.UpdatePot(pot);
+        UIManager.UpdatePlayerWallet(playerWallet);
+        UIManager.UpdateRobotWallet(robotWallet);
     }
 
     void RobotWin()
     {
+        UIManager.DisplayEventBubble("The Robot wins the round with a " + RobotHand.HandTypeName()+", earning the full pot of $"+pot);
         robotWallet += pot;
     }
 
     void PlayerWin()
     {
+        UIManager.DisplayEventBubble("The Player wins the round with a " + RobotHand.HandTypeName()+", earning the full pot of $"+pot);
         playerWallet += pot;
     }
 
@@ -706,6 +716,8 @@ public class GameManager : MonoBehaviour
             return;
         }
         phase = 0;
+        UIManager.DisplayEventBubble("Press enter to Ante up! ($"+ante+")");
+        
         drawnCards.Clear();
         PlayerHand.ResetHand();
         RobotHand.ResetHand();
@@ -716,5 +728,7 @@ public class GameManager : MonoBehaviour
         pick = 'ඞ';
         playerAllIn = false;
         minimumBet = ante;
+        pot = 0;
+        UIManager.UpdatePot(0);
     }
 }

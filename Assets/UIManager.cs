@@ -11,11 +11,15 @@ public class UIManager : MonoBehaviour
      public TextMeshProUGUI callText;
      public TextMeshProUGUI PotText;
      public TextMeshProUGUI EventBubble;
+     public TextMeshProUGUI PlayerWallet;
+     public TextMeshProUGUI RobotWallet;
+
+     private Vector3 sliderBasePosition;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        sliderBasePosition = raiseSlider.transform.position;
     }
 
     // Update is called once per frame
@@ -26,7 +30,15 @@ public class UIManager : MonoBehaviour
 
     public void RaiseSliderOnOff(bool onOff)
     {
-        raiseSlider.gameObject.SetActive(onOff);
+        return;
+        if (onOff == true)
+        {
+            raiseSlider.transform.position = sliderBasePosition;
+        }
+        else
+        {
+            raiseSlider.transform.position = new Vector3(99999, 99999, -99999);
+        }
     }
 
     public void UpdateCallText(int minBet)
@@ -55,8 +67,23 @@ public class UIManager : MonoBehaviour
         PotText.text = "Pot: $" + value;
     }
 
+    public void UpdatePlayerWallet(int value)
+    {
+        PlayerWallet.text = "Player: $" + value;
+    }
+    public void UpdateRobotWallet(int value)
+    {
+        RobotWallet.text = "Robot: $" + value;
+    }
+    
+
     public void DisplayEventBubble(string content)
     {
         EventBubble.text = content;
+    }
+
+    public void ToggleBettingUI(bool val)
+    {
+        callText.gameObject.transform.parent.gameObject.SetActive(val);
     }
 }

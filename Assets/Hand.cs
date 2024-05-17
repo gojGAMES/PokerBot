@@ -168,4 +168,33 @@ public class Hand : MonoBehaviour
 
         return true;
     }
+
+    public string HandTypeName()
+    {
+        switch (HandType)
+        {
+            case HandType.high:
+                return "High Card";
+            case HandType.pair:
+                return "Pair";
+            case HandType.twopair:
+                return "Two Pair";
+            case HandType.throak:
+                return "Three of a Kind";
+            case HandType.straight:
+                return "Straight";
+            case HandType.flush:
+                return "Flush";
+            case HandType.house:
+                return "Full House";
+            case HandType.foak:
+                return "Four of a Kind";
+            case HandType.straightflush:
+                return "Straight Flush";
+            case HandType.royal:
+                return "Godly, ~1 / 650 000 Royal Flush";
+        }
+
+        return "n/a";
+    }
 }
