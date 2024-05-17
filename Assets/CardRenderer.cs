@@ -7,6 +7,7 @@ public class CardRenderer : MonoBehaviour
 {
     private readonly Vector2 cardSpriteSize = new Vector2(42f, 60f);
     public Texture2D Sprites;
+    public Sprite cardBack;
 
     public Image[] cardImages = new Image[5];
     
@@ -27,6 +28,14 @@ public class CardRenderer : MonoBehaviour
         for (int i = 0; i < 5; i++)
         {
             cardImages[i].sprite = SetSprite(hand.Cards[i]);
+        }
+    }
+
+    public void RenderFaceDown()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            cardImages[i].sprite = cardBack;
         }
     }
     

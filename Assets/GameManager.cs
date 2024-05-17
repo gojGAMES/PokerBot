@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -23,15 +24,15 @@ public class GameManager : MonoBehaviour
     private char pick;
     private int minimumBet;
     private bool playerAllIn = false;
-    public Slider raiseSlider;
-    public TextMeshProUGUI raiseText;
-
+    
     // private List<Card> PlayerHand = new List<Card>();
     // private List<Card> RobotHand = new List<Card>();
     public Hand PlayerHand;
     public Hand RobotHand;
     public RobotController RobotController;
-    public CardRenderer CardRenderer;
+    public CardRenderer PlayerCardRenderer;
+    public CardRenderer RobotCardRenderer;
+    public UIManager UIManager;
 
     private static CardEqualityComparer _cardEqualityComparer = new();
     private HashSet<Card> drawnCards = new HashSet<Card>(_cardEqualityComparer);
@@ -45,7 +46,7 @@ public class GameManager : MonoBehaviour
 
         minimumBet = ante;
         pick = 'ඞ';
-        raiseSlider.gameObject.SetActive(false);
+        UIManager.RaiseSliderOnOff(false);
     }
 
     // Update is called once per frame
@@ -95,8 +96,9 @@ public class GameManager : MonoBehaviour
                 break;
             case 1:
                 GenerateHand(PlayerHand);
-                CardRenderer.RenderHand(PlayerHand);
+                PlayerCardRenderer.RenderHand(PlayerHand);
                 GenerateHand(RobotHand);
+                RobotCardRenderer.RenderFaceDown();
                 PlayerHand.AnalyzeHand();
                 RobotHand.AnalyzeHand();
                 Debug.Log("Hands analyzed");
@@ -110,7 +112,7 @@ public class GameManager : MonoBehaviour
                 break;
             case 4:
                 SwapPlayerHand();
-                CardRenderer.RenderHand(PlayerHand);
+                PlayerCardRenderer.RenderHand(PlayerHand);
                 break;
             case 5:
                 PlayerHand.AnalyzeHand();
@@ -155,7 +157,9 @@ public class GameManager : MonoBehaviour
             playerWallet -= ante;
             robotWallet -= ante;
             pot += 2 * ante;
+            //todo: give in game indication
             Debug.Log("Anted Up");
+            UIManager.UpdatePot(pot);
             phase++;
         }
     }
@@ -188,6 +192,8 @@ public class GameManager : MonoBehaviour
         ///
         ///
 
+        UIManager.UpdateCallText(minimumBet);
+        
         if (playerAllIn)
         {
             Debug.Log("player has already gone all in");
@@ -198,36 +204,31 @@ public class GameManager : MonoBehaviour
         if (Input.GetButtonDown("call"))
         {
             pick = 'c';
-            raiseSlider.gameObject.SetActive(false);
+            UIManager.RaiseSliderOnOff(false);
         }
         if (Input.GetButtonDown("raise"))
         {
             pick = 'r';
-            raiseSlider.gameObject.SetActive(true);
+            UIManager.RaiseSliderOnOff(true);
         }
         if (Input.GetButtonDown("fold"))
         {
             pick = 'f';
-            raiseSlider.gameObject.SetActive(false);
+            UIManager.RaiseSliderOnOff(false);
         }
 
         switch (pick)
         {
             case 'c':
                 playerWallet -= minimumBet;
-                pot += minimumBet;
+                AddToPot(minimumBet);
                 Debug.Log("bet 1 complete");
                 phase++;
                 return;
                 break;
             case 'r':
-                int sliderValue = (int)raiseSlider.value;
-                raiseText.text = "Raise: " + sliderValue;
-                if (sliderValue >= playerWallet)
-                {
-                    sliderValue = playerWallet;
-                    raiseText.text = "All in!!";
-                }
+                int sliderValue = UIManager.GetSliderValAsInt();
+                UIManager.UpdateRaiseText(sliderValue, sliderValue >= playerWallet);
                 
                 if (Input.GetButtonDown("Confirm"))
                 {
@@ -239,9 +240,9 @@ public class GameManager : MonoBehaviour
                         }
                         minimumBet = sliderValue;
                         playerWallet -= sliderValue;
-                        pot += sliderValue;
+                        AddToPot(sliderValue);
                         phase++;
-                        raiseSlider.gameObject.SetActive(false);
+                        UIManager.RaiseSliderOnOff(false);
                         return;
                     }
                     Debug.Log("bet higher coward");
@@ -269,7 +270,7 @@ public class GameManager : MonoBehaviour
         {
             case Bettings.call:
                 robotWallet -= minimumBet;
-                pot += minimumBet;
+                AddToPot(minimumBet);
                 break;
         }
         phase++;
@@ -299,12 +300,12 @@ public class GameManager : MonoBehaviour
             swapCards[4] = !swapCards[4];
         }
         
-        CardRenderer.SwapVisual(swapCards);
+        PlayerCardRenderer.SwapVisual(swapCards);
 
         if (Input.GetButtonDown("Submit"))
         {
             SwapCards(PlayerHand);
-            CardRenderer.ResetSwapVisual();
+            PlayerCardRenderer.ResetSwapVisual();
             phase++;
         }
     }
@@ -674,6 +675,12 @@ public class GameManager : MonoBehaviour
         }
 
         
+    }
+
+    void AddToPot(int value)
+    {
+        pot += value;
+        UIManager.UpdatePot(pot);
     }
 
     void RobotWin()
