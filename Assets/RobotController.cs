@@ -7,7 +7,13 @@ public class RobotController : MonoBehaviour
     public Hand RobotHand;
     private float riskiness; //how ready the robot is to call/raise and play worse hands (or maybe playing bad hands goes more into avghand??)
     private float averageHand; //todo: rename this. this is the value the of hand the robot will strive towards
-
+    
+    /// player high bluff rate - odds that the player is playing a bad hand
+    /// player low bluff rate - odds that the player is hiding a good hand
+    /// predicted player hand value - can be determined based on avg hand value and swapped cards
+    /// player call rate - rate at which player calls or raises when robot plays aggressive (in other words how likely the player is to assume bluffs)
+    ///  
+    
     ///additional variables
     /// hand confidence
     /// percieved player confidence
