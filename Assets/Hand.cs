@@ -61,13 +61,17 @@ public class Hand : MonoBehaviour
         
         Dictionary<Suit, int> suits = new Dictionary<Suit, int>();
         
+        ranks.Clear();
+        
         foreach (Card card in Cards)
         {
-            if (ranks.TryAdd(card.Rank, 1))
+            if (!ranks.TryAdd(card.Rank, 1))
                 ranks[card.Rank]++;
             if (!suits.TryAdd(card.Suit, 1))
                 suits[card.Suit]++;
         }
+        
+        Debug.Log(gameObject.name + " contains " + ranks.Count + "different ranks of cards");
 
         if (ranks.Count < 5)
         {
@@ -77,13 +81,14 @@ public class Hand : MonoBehaviour
                     HandType = HandType.pair;
                     break;
                 case 3:
-                    if (ranks.ContainsValue(1))
+                    //TODO: figure out why this doesn't work (i got a throak off the hand [8 j j 10 10] 
+                    if (ranks.ContainsValue(3))
                     {
-                        HandType = HandType.twopair;
+                        HandType = HandType.throak;
                     }
                     else
                     {
-                        HandType = HandType.throak;
+                        HandType = HandType.twopair;
                     }
                     break;
                 case 2:
@@ -119,11 +124,13 @@ public class Hand : MonoBehaviour
         if (straight && !flush)
         {
             HandType = HandType.straight;
+            return;
         }
 
         if (!straight && flush)
         {
             HandType = HandType.flush;
+            return;
         }
 
         if (GetHighestRank() == 13)
@@ -139,6 +146,8 @@ public class Hand : MonoBehaviour
     
     bool ContainsStraight(List<Card> cards)
     {
+        //TODO: fix this (got a straight flush with the hand [k 7 2 9 5] - all spades)
+        //FIXED: added return clauses to the analysis so it doesnt run all the way through
         int lowestRank = 13;
         for (int i = 0; i < cards.Count; i++)
         {

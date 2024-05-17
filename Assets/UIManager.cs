@@ -6,6 +6,8 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
+    public int RaiseMultipliFactor = 10;
+    
      public Slider raiseSlider;
      public TextMeshProUGUI raiseText;
      public TextMeshProUGUI callText;
@@ -15,6 +17,7 @@ public class UIManager : MonoBehaviour
      public TextMeshProUGUI RobotWallet;
 
      private Vector3 sliderBasePosition;
+     public GameObject BettingControlsParent;
 
     // Start is called before the first frame update
     void Start()
@@ -30,15 +33,16 @@ public class UIManager : MonoBehaviour
 
     public void RaiseSliderOnOff(bool onOff)
     {
-        return;
-        if (onOff == true)
+        raiseSlider.gameObject.SetActive(onOff);
+        
+        /*if (onOff == true)
         {
             raiseSlider.transform.position = sliderBasePosition;
         }
         else
         {
             raiseSlider.transform.position = new Vector3(99999, 99999, -99999);
-        }
+        }*/
     }
 
     public void UpdateCallText(int minBet)
@@ -48,7 +52,7 @@ public class UIManager : MonoBehaviour
 
     public int GetSliderValAsInt()
     {
-        return (int)raiseSlider.value;
+        return (int)raiseSlider.value * RaiseMultipliFactor;
     }
 
     public void UpdateRaiseText(int value, bool allIn = false)
@@ -84,6 +88,8 @@ public class UIManager : MonoBehaviour
 
     public void ToggleBettingUI(bool val)
     {
-        callText.gameObject.transform.parent.gameObject.SetActive(val);
+        //Note: FOR SOME REASON THIS BREAKS THE SLIDER THAT IS UNRELATED
+        //callText.gameObject.transform.parent.gameObject.SetActive(val);
+        BettingControlsParent.SetActive(val);
     }
 }

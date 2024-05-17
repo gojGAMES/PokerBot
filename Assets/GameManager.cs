@@ -192,8 +192,6 @@ public class GameManager : MonoBehaviour
         /// we got check/call and raise (and fold)
         ///
         ///
-
-        return;
         
         UIManager.UpdateCallText(minimumBet);
         
@@ -237,22 +235,20 @@ public class GameManager : MonoBehaviour
                 
                 if (Input.GetButtonDown("Confirm"))
                 {
-                    if (sliderValue > minimumBet)
+                    if (minimumBet + sliderValue >= playerWallet)
                     {
-                        if (sliderValue == playerWallet)
-                        {
-                            playerAllIn = true;
-                        }
-                        minimumBet = sliderValue;
-                        playerWallet -= sliderValue;
-                        AddToPot(sliderValue);
-                        phase++;
-                        UIManager.RaiseSliderOnOff(false);
-                        UIManager.ToggleBettingUI(false);
-                        return;
+                        playerAllIn = true;
                     }
-                    UIManager.DisplayEventBubble("The raise is lower than the minimum bet. Either call, fold, or increase your raise.");
-                    Debug.Log("bet higher coward");
+                    minimumBet += sliderValue;
+                    playerWallet -= minimumBet;
+                    AddToPot(minimumBet);
+                    phase++;
+                    UIManager.RaiseSliderOnOff(false);
+                    UIManager.ToggleBettingUI(false);
+                    return;
+                    
+                    //UIManager.DisplayEventBubble("The raise is lower than the minimum bet. Either call, fold, or increase your raise.");
+                    //Debug.Log("bet higher coward");
                 }
                 break;
                 case 'f':
@@ -275,6 +271,7 @@ public class GameManager : MonoBehaviour
                 break;
         }
         phase++;
+        UIManager.DisplayEventBubble("You may now swap up to 5 cards. Use the QWERT keys to select which cards you wish to trade.");
     }
 
     void SwapPlayerHand()
@@ -307,6 +304,8 @@ public class GameManager : MonoBehaviour
         {
             SwapCards(PlayerHand);
             PlayerCardRenderer.ResetSwapVisual();
+            UIManager.DisplayEventBubble("The second round of betting will now commence.");
+            UIManager.ToggleBettingUI(true);
             phase++;
         }
     }
@@ -347,6 +346,7 @@ public class GameManager : MonoBehaviour
     void DetermineWinner()
     {
         phase++;
+        RobotCardRenderer.RenderHand(RobotHand);
         
         if ((int)PlayerHand.HandType > (int)RobotHand.HandType)
         {
@@ -699,7 +699,7 @@ public class GameManager : MonoBehaviour
 
     void PlayerWin()
     {
-        UIManager.DisplayEventBubble("The Player wins the round with a " + RobotHand.HandTypeName()+", earning the full pot of $"+pot);
+        UIManager.DisplayEventBubble("The Player wins the round with a " + PlayerHand.HandTypeName()+", earning the full pot of $"+pot);
         playerWallet += pot;
     }
 
