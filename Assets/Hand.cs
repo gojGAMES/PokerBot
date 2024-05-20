@@ -20,7 +20,9 @@ public class Hand : MonoBehaviour
 {
     public List<Card> Cards = new List<Card>();
     public Dictionary<int, int> ranks = new Dictionary<int, int>(); //syntax of rank as key
+    public Dictionary<Suit, int> suits = new Dictionary<Suit, int>();
     public HandType HandType;
+    public bool[] swapCards =  {false, false, false, false, false };
 
     void Sort()
     {
@@ -44,6 +46,10 @@ public class Hand : MonoBehaviour
         Cards.Clear();
         ranks.Clear();
         HandType = default;
+        for (int i = 0; i < 5; i++)
+        {
+            swapCards[i] = false;
+        }
     }
 
     public void PrintHand()
@@ -59,9 +65,8 @@ public class Hand : MonoBehaviour
         bool flush;
         bool straight;
         
-        Dictionary<Suit, int> suits = new Dictionary<Suit, int>();
-        
         ranks.Clear();
+        suits.Clear();
         
         foreach (Card card in Cards)
         {

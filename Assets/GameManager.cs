@@ -36,7 +36,6 @@ public class GameManager : MonoBehaviour
 
     private static CardEqualityComparer _cardEqualityComparer = new();
     private HashSet<Card> drawnCards = new HashSet<Card>(_cardEqualityComparer);
-    [SerializeField] private bool[] swapCards =  {false, false, false, false, false };
 
 // Start is called before the first frame update
     void Start()
@@ -118,21 +117,24 @@ public class GameManager : MonoBehaviour
                 PlayerCardRenderer.RenderHand(PlayerHand);
                 break;
             case 5:
+                RobotController.RobotSwap();
+                SwapCards(RobotHand);
+                break;
+            case 6:
                 PlayerHand.AnalyzeHand();
                 RobotHand.AnalyzeHand();
                 phase++;
                 break;
-            case 6:
+            case 7:
                 RobotBet1();
                 break;
-            case 7:
+            case 8:
                 PlayerBet1();
                 break;
-            
-            case 8:
+            case 9:
                 DetermineWinner();
                 break;
-            case 9:
+            case 10:
                 ResetToNewRound();
                 break;
             
@@ -144,14 +146,14 @@ public class GameManager : MonoBehaviour
         if (playerWallet < ante)
         {
             Debug.Log("Player broke af, robot wins");
-            phase = 11;
+            phase = -1;
             return;
         }
 
         if (robotWallet < ante)
         {
             Debug.Log("robot broke, humanity wins");
-            phase = 11;
+            phase = -1;
             return;
         }
         
@@ -227,6 +229,7 @@ public class GameManager : MonoBehaviour
                 AddToPot(minimumBet);
                 Debug.Log("bet 1 complete");
                 phase++;
+                pick = 'ඞ';
                 return;
                 break;
             case 'r':
@@ -243,6 +246,7 @@ public class GameManager : MonoBehaviour
                     playerWallet -= minimumBet;
                     AddToPot(minimumBet);
                     phase++;
+                    pick = 'ඞ';
                     UIManager.RaiseSliderOnOff(false);
                     UIManager.ToggleBettingUI(false);
                     return;
@@ -279,26 +283,26 @@ public class GameManager : MonoBehaviour
         
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            swapCards[0] = !swapCards[0];
+            PlayerHand.swapCards[0] = !PlayerHand.swapCards[0];
         }
         if (Input.GetKeyDown(KeyCode.W))
         {
-            swapCards[1] = !swapCards[1];
+            PlayerHand.swapCards[1] = !PlayerHand.swapCards[1];
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
-            swapCards[2] = !swapCards[2];
+            PlayerHand.swapCards[2] = !PlayerHand.swapCards[2];
         }
         if (Input.GetKeyDown(KeyCode.R))
         {
-            swapCards[3] = !swapCards[3];
+            PlayerHand.swapCards[3] = !PlayerHand.swapCards[3];
         }
         if (Input.GetKeyDown(KeyCode.T))
         {
-            swapCards[4] = !swapCards[4];
+            PlayerHand.swapCards[4] = !PlayerHand.swapCards[4];
         }
         
-        PlayerCardRenderer.SwapVisual(swapCards);
+        PlayerCardRenderer.SwapVisual(PlayerHand.swapCards);
 
         if (Input.GetButtonDown("Confirm"))
         {
@@ -314,7 +318,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 4; i > 0; i--)
         {
-            if (swapCards[i])
+            if (hand.swapCards[i])
             {
                 hand.Cards.RemoveAt(i);
             }
@@ -346,6 +350,7 @@ public class GameManager : MonoBehaviour
     void DetermineWinner()
     {
         phase++;
+        UIManager.ToggleBettingUI(false);
         RobotCardRenderer.RenderHand(RobotHand);
         
         if ((int)PlayerHand.HandType > (int)RobotHand.HandType)
@@ -408,7 +413,8 @@ public class GameManager : MonoBehaviour
                 {
                     if (kvp.Value == 2)
                     {
-                        playerHighest = kvp.Key;
+                        if (kvp.Key > playerHighest)
+                            playerHighest = kvp.Key;
                         break;
                     }
                 }
@@ -416,7 +422,8 @@ public class GameManager : MonoBehaviour
                 {
                     if (kvp.Value == 2)
                     {
-                        robotHighest = kvp.Key;
+                        if (kvp.Key > robotHighest)
+                            robotHighest = kvp.Key;
                         break;
                     }
                 }
@@ -429,6 +436,42 @@ public class GameManager : MonoBehaviour
                 if (robotHighest > playerHighest)
                 {
                     RobotWin();
+                }
+
+                playerHighest = 0;
+                robotHighest = 0;
+                
+                foreach (KeyValuePair<int, int> kvp in PlayerHand.ranks)
+                {
+                    if (kvp.Value == 1)
+                    {
+                        if (kvp.Key > playerHighest)
+                        {
+                            playerHighest = kvp.Key;
+                        }
+                    }
+                }
+                foreach (KeyValuePair<int, int> kvp in RobotHand.ranks)
+                {
+                    if (kvp.Value == 1)
+                    {
+                        if (kvp.Key > robotHighest)
+                        {
+                            robotHighest = kvp.Key;
+                        }
+                    }
+                }
+
+                if (playerHighest > robotHighest)
+                {
+                    PlayerWin();
+                    break;
+                }
+
+                if (robotHighest > playerHighest)
+                {
+                    RobotWin();
+                    break;
                 }
 
                 Tie();
@@ -705,6 +748,7 @@ public class GameManager : MonoBehaviour
 
     void Tie()
     {
+        UIManager.DisplayEventBubble("It's a tie! Both participants will split the pot evenly");
         playerWallet += pot / 2;
         robotWallet += pot / 2;
     }
@@ -721,14 +765,10 @@ public class GameManager : MonoBehaviour
         drawnCards.Clear();
         PlayerHand.ResetHand();
         RobotHand.ResetHand();
-        for (int i = 0; i < 5; i++)
-        {
-            swapCards[i] = false;
-        }
         pick = 'ඞ';
         playerAllIn = false;
         minimumBet = ante;
         pot = 0;
-        UIManager.UpdatePot(0);
+        OnTransaction();
     }
 }

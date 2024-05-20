@@ -3002,7 +3002,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbef9c1164e7be74abf79635d5d2fc60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RaiseMultipliFactor: 5
+  RaiseMultipliFactor: 25
   raiseSlider: {fileID: 2001965503}
   raiseText: {fileID: 1661706408}
   callText: {fileID: 298624237}
@@ -5292,6 +5292,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 21a8a627292e4714eb226ae140ae7f7a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 7887957717227282328, guid: 21a8a627292e4714eb226ae140ae7f7a, type: 3}
+    - target: {fileID: -7511558181221131132, guid: 21a8a627292e4714eb226ae140ae7f7a, type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 8416026721137863551, guid: 21a8a627292e4714eb226ae140ae7f7a, type: 3}
     - target: {fileID: 919132149155446097, guid: 21a8a627292e4714eb226ae140ae7f7a, type: 3}
       propertyPath: m_Name
       value: rugRound
@@ -5704,7 +5712,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 743147101}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 20
+  m_MaxValue: 40
   m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
