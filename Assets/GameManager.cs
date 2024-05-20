@@ -21,6 +21,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int robotWallet;
     [SerializeField] private int pot;
     [SerializeField] private int phase = 0;
+
+    private InfoPackage infoPackage = new InfoPackage();
+    
     private char pick;
     private int minimumBet;
     private bool playerAllIn = false;
@@ -92,6 +95,9 @@ public class GameManager : MonoBehaviour
         /// return
         switch (phase)
         {
+            case -2:
+                ResetToNewRound();
+                break;
             case 0:
                 AnteUp();
                 break;
@@ -117,8 +123,10 @@ public class GameManager : MonoBehaviour
                 PlayerCardRenderer.RenderHand(PlayerHand);
                 break;
             case 5:
+                Debug.Log("enter phase 5");
                 RobotController.RobotSwap();
                 SwapCards(RobotHand);
+                phase++;
                 break;
             case 6:
                 PlayerHand.AnalyzeHand();
@@ -126,7 +134,7 @@ public class GameManager : MonoBehaviour
                 phase++;
                 break;
             case 7:
-                RobotBet1();
+                RobotBet2();
                 break;
             case 8:
                 PlayerBet1();
@@ -245,6 +253,7 @@ public class GameManager : MonoBehaviour
                     minimumBet += sliderValue;
                     playerWallet -= minimumBet;
                     AddToPot(minimumBet);
+                    infoPackage.playerRaised = true;
                     phase++;
                     pick = 'ඞ';
                     UIManager.RaiseSliderOnOff(false);
@@ -256,8 +265,9 @@ public class GameManager : MonoBehaviour
                 }
                 break;
                 case 'f':
+                    RobotCardRenderer.RenderHand(RobotHand);
                     RobotWin();
-                    ResetToNewRound();
+                    phase = -2;
                     return;
             case 'ඞ':
                 return;
@@ -267,7 +277,10 @@ public class GameManager : MonoBehaviour
 
     void RobotBet1()
     {
-        switch (RobotController.Bet1())
+        infoPackage.MinimumBet = minimumBet;
+        infoPackage.Pot = pot;
+        
+        switch (RobotController.Bet1(infoPackage))
         {
             case Bettings.call:
                 robotWallet -= minimumBet;
@@ -310,7 +323,9 @@ public class GameManager : MonoBehaviour
             PlayerCardRenderer.ResetSwapVisual();
             UIManager.DisplayEventBubble("The second round of betting will now commence.");
             UIManager.ToggleBettingUI(true);
+            Debug.Log("inb4 phase 5");
             phase++;
+            Debug.Log("phase++ to 5");
         }
     }
 
@@ -343,7 +358,16 @@ public class GameManager : MonoBehaviour
 
     void RobotBet2()
     {
-        RobotController.Bet2();
+        infoPackage.MinimumBet = minimumBet;
+        infoPackage.Pot = pot;
+        
+        switch (RobotController.Bet2())
+        {
+            case Bettings.call:
+                robotWallet -= minimumBet;
+                AddToPot(minimumBet);
+                break;
+        }
         phase++;
     }
 

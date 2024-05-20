@@ -5,14 +5,21 @@ using UnityEngine;
 public class RobotController : MonoBehaviour
 {
     public Hand RobotHand;
+    public float BluffThreshold = 0.5f;
     private float riskiness; //how ready the robot is to call/raise and play worse hands (or maybe playing bad hands goes more into avghand??)
     private float averageHand; //todo: rename this. this is the value the of hand the robot will strive towards
+    private int handsInData = 0;
+    private int playerRaises = 0;
+    private int playerRaiseBluffs = 0;
     private float percievedPlayerHandValue; //should factor the average hand value along with confidence gleaned from player betting
+
     /// player high bluff rate - odds that the player is playing a bad hand
     /// player low bluff rate - odds that the player is hiding a good hand
     /// predicted player hand value - can be determined based on avg hand value and swapped cards
     /// player call rate - rate at which player calls or raises when robot plays aggressive (in other words how likely the player is to assume bluffs)
     ///  
+    private float playerSkiddishness; //average amount raised for player to fold, possibly divided by hand value
+    
     
     ///additional variables
     /// hand confidence
@@ -20,11 +27,11 @@ public class RobotController : MonoBehaviour
     /// loss aversion?? idk
 
     ///todo:
-    /// robot swapping behavior
+    /// robot swapping behavior (check)
     /// robot betting 1
     /// robot betting 2
     /// robot learning
-    /// robot hand analysis
+    /// robot hand analysis (check)
     ///
 
     
@@ -184,8 +191,64 @@ public class RobotController : MonoBehaviour
         return 0;
     }
 
-    public Bettings Bet1()
+    void EstimatePlayerHandValue(InfoPackage infoPackage)
     {
+        //average player hand * confidence
+        //confidence = bet amount / bluff rate
+        //bluff rate is the % of raises done with a worse hand
+    }
+
+    float AveragePlayerHand()
+    {
+        return averageHand / handsInData;
+    }
+
+    public void AddHandToAverage(Hand hand)
+    {
+        averageHand += hand.GetHandValue();
+        handsInData++;
+    }
+
+    float PlayerBluffRate()
+    {
+        return (float)playerRaiseBluffs / (float)playerRaises;
+    }
+
+    public void UpdateBluffRate(InfoPackage infoPackage)
+    {
+        if (infoPackage.playerRaised)
+            playerRaises++;
+        if (RobotHand.GetHandValue() - infoPackage.PlayerHand.GetHandValue() > BluffThreshold)
+        {
+            playerRaiseBluffs++;
+        }
+    }
+    
+    //todo: add an int out for bet
+    public Bettings Bet1(InfoPackage infoPackage)
+    {
+        ///factors:
+        /// own hand. is it worth playing (tied to risk)
+        /// player hand. are they confident
+        /// player bet.
+        /// player bluff rate.
+        /// player skiddishness
+        ///
+        /// plays:
+        /// aggressive
+        /// passive
+        /// defensive
+        
+        
+        /// step one: decide on strategy (milk the player, bluff, play honest)
+        /// step two: determine which option to go with based on the plan
+        /// step three? if applicable, determine raise amount
+        
+        /// deciding on strategy:
+        /// first, determine odds. then the stakes.
+        /// then look at past data. bluff rate, riskiness, skiddishness
+        
+        
         return Bettings.call;
     }
 
@@ -296,5 +359,59 @@ public class RobotController : MonoBehaviour
         }
         
         return 1;
+    }
+
+    float PreSwapHandValue()
+    {
+        float value = RobotHand.GetHandValue();
+        
+        if ((int)RobotHand.HandType >= 2)
+        {
+            return value;
+        }
+
+        if (RobotHand.HandType == HandType.pair)
+        {
+            //TODO: account for values of hands it can become
+            //value += (float)HandType.throak * 0.12488f;
+            //value += (float) HandType.foak *
+            return value;
+        }
+
+        value += (float)HandType.pair * 0.38f;
+        if (OneFromFlush(out int flushIndex) == 1)
+        {
+            value += (float)HandType.flush * .19f;
+        }
+
+        value += (float) HandType.straight * OneFromStraight(out int straightIndex) * 0.063f;
+
+        if (straightIndex != 6 && straightIndex == flushIndex)
+        {
+            value += (float)HandType.royal * (1 / 47);
+        }
+
+        return value;
+    }
+}
+
+public class InfoPackage
+{
+    public int MinimumBet;
+    public int Pot;
+    public bool playerRaised;
+
+    public int PlayerCardSwapCount;
+    
+    //post-round:
+    public Hand PlayerHand;
+
+
+    public void ResetPackage()
+    {
+        MinimumBet = 0;
+        Pot = 0;
+        PlayerCardSwapCount = 0;
+        playerRaised = false;
     }
 }

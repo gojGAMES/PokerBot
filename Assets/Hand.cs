@@ -211,4 +211,71 @@ public class Hand : MonoBehaviour
 
         return "n/a";
     }
+
+    public float GetHandValue()
+    {
+        float handValue = (float)HandType;
+        int rankValue = 0;
+
+        switch (HandType)
+        {
+            case HandType.foak:
+                foreach (var kvp in ranks)
+                {
+                    if (kvp.Value == 4)
+                    {
+                        rankValue = kvp.Key;
+                        break;
+                    }
+                }
+                break;
+            case HandType.house:
+                foreach (var kvp in ranks)
+                {
+                    if (kvp.Value == 3)
+                    {
+                        rankValue = kvp.Key;
+                        break;
+                    }
+                }
+                break;
+            case HandType.throak:
+                foreach (var kvp in ranks)
+                {
+                    if (kvp.Value == 3)
+                    {
+                        rankValue = kvp.Key;
+                        break;
+                    }
+                }
+                break;
+            case HandType.twopair:
+                foreach (var kvp in ranks)
+                {
+                    if (kvp.Value == 2)
+                    {
+                        if (kvp.Key > rankValue)
+                            rankValue = kvp.Key;
+                        break;
+                    }
+                }
+                break;
+            case HandType.royal:
+                return 14.0f;
+            case HandType.straightflush:
+                rankValue = GetHighestRank();
+                break;
+            case HandType.straight:
+                rankValue = GetHighestRank();
+                break;
+            case HandType.flush:
+                rankValue = GetHighestRank();
+                break;
+            case HandType.high:
+                rankValue = GetHighestRank();
+                break;
+        }
+
+        return handValue + (float)rankValue / 13;
+    }
 }
