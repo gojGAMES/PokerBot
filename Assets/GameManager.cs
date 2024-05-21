@@ -36,6 +36,8 @@ public class GameManager : MonoBehaviour
     public CardRenderer PlayerCardRenderer;
     public CardRenderer RobotCardRenderer;
     public UIManager UIManager;
+    public GameObject PauseScreen;
+    private bool paused = false;
 
     private static CardEqualityComparer _cardEqualityComparer = new();
     private HashSet<Card> drawnCards = new HashSet<Card>(_cardEqualityComparer);
@@ -51,6 +53,7 @@ public class GameManager : MonoBehaviour
         UIManager.RaiseSliderOnOff(false);
         UIManager.ToggleBettingUI(false);
         UIManager.DisplayEventBubble("Press enter to Ante up! ($"+ante+")");
+        PauseScreen.SetActive(false);
     }
 
     // Update is called once per frame
@@ -69,6 +72,16 @@ public class GameManager : MonoBehaviour
                 Debug.Log(card.Rank + " of " + card.Suit);
             }
         }*/
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            paused = !paused;
+            PauseScreen.SetActive(!PauseScreen.activeSelf);
+        }
+        
+        if (paused)
+            return;
+        
         Game();
     }
 
@@ -455,11 +468,13 @@ public class GameManager : MonoBehaviour
                 if (playerHighest > robotHighest)
                 {
                     PlayerWin();
+                    break;
                 }
 
                 if (robotHighest > playerHighest)
                 {
                     RobotWin();
+                    break;
                 }
 
                 playerHighest = 0;
