@@ -428,6 +428,13 @@ public class GameManager : MonoBehaviour
 
     void RobotBet2()
     {
+        if (robotAllIn)
+        {
+            UIManager.DisplayEventBubble("The robot has already gone all in");
+            phase++;
+            return;
+        }
+        
         /*infoPackage.MinimumBet = minimumBet;
         infoPackage.Pot = pot;
         
@@ -901,6 +908,7 @@ public class GameManager : MonoBehaviour
         RobotHand.ResetHand();
         pick = 'ඞ';
         playerAllIn = false;
+        robotAllIn = false;
         minimumBet = ante;
         pot = 0;
         OnTransaction();
