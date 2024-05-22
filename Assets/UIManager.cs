@@ -18,17 +18,31 @@ public class UIManager : MonoBehaviour
 
      private Vector3 sliderBasePosition;
      public GameObject BettingControlsParent;
+     public GameObject GameEndUI;
 
     // Start is called before the first frame update
     void Start()
     {
         sliderBasePosition = raiseSlider.transform.position;
+        GameEndUI.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+    
+    public void UIOnGameEnd()
+    {
+        RaiseSliderOnOff(false);
+        ToggleBettingUI(false);
+        GameEndUI.SetActive(true);
+    }
+
+    public void UIOnNewMatch()
+    {
+        GameEndUI.SetActive(false);
     }
 
     public void RaiseSliderOnOff(bool onOff)

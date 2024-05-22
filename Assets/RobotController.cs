@@ -20,10 +20,10 @@ public class RobotController : MonoBehaviour
     ///  
     private float playerSkiddishness; //average amount raised for player to fold, possibly divided by hand value
     
-    
+
     ///additional variables
     /// hand confidence
-    /// percieved player confidence
+    /// perceived player confidence
     /// loss aversion?? idk
 
     ///todo:
@@ -191,6 +191,47 @@ public class RobotController : MonoBehaviour
         return 0;
     }
 
+    float GetHandDrawOdds(HandType handType)
+    {
+        switch (handType)
+        {
+            case HandType.high:
+                return 0.50118f;
+            case HandType.pair:
+                return .423f;
+            case HandType.twopair:
+                return .0475f;
+            case HandType.throak:
+                return .0211f;
+            case HandType.straight:
+                return .00392f;
+            case HandType.flush:
+                return .00197f;
+            case HandType.house:
+                return .00144f;
+            case HandType.foak:
+                return .00024f;
+            case HandType.straightflush:
+                return .00002f;
+            default:
+                return 0;
+        }
+    }
+
+    float SumOfBetterOdds(HandType handType)
+    {
+        //TODO: incorporate tiebreakers
+        if (handType == HandType.royal)
+            return 0;
+        float sum = 0;
+        for (int i = (int)handType + 1; i < 9; i++)
+        {
+            sum += GetHandDrawOdds((HandType)i);
+        }
+
+        return sum;
+    }
+    
     void EstimatePlayerHandValue(InfoPackage infoPackage)
     {
         //average player hand * confidence
@@ -247,9 +288,32 @@ public class RobotController : MonoBehaviour
         /// deciding on strategy:
         /// first, determine odds. then the stakes.
         /// then look at past data. bluff rate, riskiness, skiddishness
+
+        float lossOdds = SumOfBetterOdds(RobotHand.HandType);
+        
+        float FoldValue = -infoPackage.SunkCost;
+        Debug.Log("Fold value: " + FoldValue);
+        float CallValue = CalculateRisk(lossOdds, infoPackage.MinimumBet, infoPackage);
+        Debug.Log("Call Value: " + CallValue);
+        
         
         
         return Bettings.call;
+    }
+
+    float PlayerConfidenceFactor(InfoPackage infoPackage)
+    {
+        float factor = ((float) infoPackage.Pot - infoPackage.SunkCost) / 1000f;
+        
+        return 1 + factor;
+    }
+
+    float CalculateRisk(float lossOdds, int bet, InfoPackage infoPackage)
+    {
+        float riskValue = lossOdds * bet * PlayerConfidenceFactor(infoPackage);
+        float rewardValue = (1f - lossOdds) * (infoPackage.Pot - infoPackage.SunkCost);
+
+        return rewardValue - riskValue;
     }
 
     public Bettings Bet2()
@@ -398,6 +462,7 @@ public class RobotController : MonoBehaviour
 public class InfoPackage
 {
     public int MinimumBet;
+    public int SunkCost;
     public int Pot;
     public bool playerRaised;
 
@@ -410,6 +475,7 @@ public class InfoPackage
     public void ResetPackage()
     {
         MinimumBet = 0;
+        SunkCost = 0;
         Pot = 0;
         PlayerCardSwapCount = 0;
         playerRaised = false;

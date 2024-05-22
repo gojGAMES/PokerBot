@@ -111,6 +111,12 @@ public class GameManager : MonoBehaviour
             case -2:
                 ResetToNewRound();
                 break;
+            case -1:
+                if (Input.GetButtonDown("Confirm"))
+                {
+                    ResetToNewMatch();
+                }
+                break;
             case 0:
                 AnteUp();
                 break;
@@ -167,6 +173,8 @@ public class GameManager : MonoBehaviour
         if (playerWallet < ante)
         {
             Debug.Log("Player broke af, robot wins");
+            UIManager.DisplayEventBubble("You have gone bust, and therefore the Robot wins!");
+            UIManager.UIOnGameEnd();
             phase = -1;
             return;
         }
@@ -174,6 +182,8 @@ public class GameManager : MonoBehaviour
         if (robotWallet < ante)
         {
             Debug.Log("robot broke, humanity wins");
+            UIManager.DisplayEventBubble("The Robot has gone bust, and therefore you win!");
+            UIManager.UIOnGameEnd();
             phase = -1;
             return;
         }
@@ -182,11 +192,14 @@ public class GameManager : MonoBehaviour
         {
             playerWallet -= ante;
             robotWallet -= ante;
+            infoPackage.SunkCost += ante;
             AddToPot(ante*2);
             UIManager.DisplayEventBubble("The first round of betting commences. You can call, raise, or fold.");
             phase++;
         }
     }
+
+    
 
     void GenerateHand(Hand hand)
     {
@@ -298,6 +311,7 @@ public class GameManager : MonoBehaviour
             case Bettings.call:
                 robotWallet -= minimumBet;
                 AddToPot(minimumBet);
+                infoPackage.SunkCost += minimumBet;
                 break;
         }
         phase++;
@@ -809,5 +823,19 @@ public class GameManager : MonoBehaviour
         minimumBet = ante;
         pot = 0;
         OnTransaction();
+    }
+
+    void ResetToNewMatch()
+    {
+        playerWallet = startingMoney;
+        robotWallet = startingMoney;
+
+        minimumBet = ante;
+        pick = 'ඞ';
+        UIManager.RaiseSliderOnOff(false);
+        UIManager.ToggleBettingUI(false);
+        UIManager.UIOnNewMatch();
+        
+        ResetToNewRound();
     }
 }
