@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
     private char pick;
     private int minimumBet;
     private bool playerAllIn = false;
+    private bool robotAllIn = false;
     
     // private List<Card> PlayerHand = new List<Card>();
     // private List<Card> RobotHand = new List<Card>();
@@ -38,6 +39,7 @@ public class GameManager : MonoBehaviour
     public UIManager UIManager;
     public GameObject PauseScreen;
     private bool paused = false;
+    [SerializeField]private bool debugMode = false;
 
     private static CardEqualityComparer _cardEqualityComparer = new();
     private HashSet<Card> drawnCards = new HashSet<Card>(_cardEqualityComparer);
@@ -54,6 +56,7 @@ public class GameManager : MonoBehaviour
         UIManager.ToggleBettingUI(false);
         UIManager.DisplayEventBubble("Press enter to Ante up! ($"+ante+")");
         PauseScreen.SetActive(false);
+        infoPackage.PlayerHand = PlayerHand;
     }
 
     // Update is called once per frame
@@ -77,6 +80,11 @@ public class GameManager : MonoBehaviour
         {
             paused = !paused;
             PauseScreen.SetActive(!PauseScreen.activeSelf);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Backspace))
+        {
+            debugMode = !debugMode;
         }
         
         if (paused)
@@ -125,6 +133,8 @@ public class GameManager : MonoBehaviour
                 PlayerCardRenderer.RenderHand(PlayerHand);
                 GenerateHand(RobotHand);
                 RobotCardRenderer.RenderFaceDown();
+                if (debugMode)
+                    RobotCardRenderer.RenderHand(RobotHand);
                 PlayerHand.AnalyzeHand();
                 RobotHand.AnalyzeHand();
                 Debug.Log("Hands analyzed");
@@ -138,30 +148,39 @@ public class GameManager : MonoBehaviour
                 RobotBet1();
                 break;
             case 4:
+                if (Input.GetButtonDown("Confirm"))
+                {
+                    UIManager.DisplayEventBubble("You may now swap up to 5 cards. Use the QWERT keys to select which cards you wish to trade.");
+                    phase++;
+                }
+                break;
+            case 5:
                 SwapPlayerHand();
                 PlayerCardRenderer.RenderHand(PlayerHand);
                 break;
-            case 5:
+            case 6:
                 Debug.Log("enter phase 5");
                 RobotController.RobotSwap();
                 SwapCards(RobotHand);
+                if (debugMode)
+                    RobotCardRenderer.RenderHand(RobotHand);
                 phase++;
                 break;
-            case 6:
+            case 7:
                 PlayerHand.AnalyzeHand();
                 RobotHand.AnalyzeHand();
                 phase++;
                 break;
-            case 7:
+            case 8:
                 RobotBet2();
                 break;
-            case 8:
+            case 9:
                 PlayerBet1();
                 break;
-            case 9:
+            case 10:
                 DetermineWinner();
                 break;
-            case 10:
+            case 11:
                 ResetToNewRound();
                 break;
             
@@ -275,8 +294,10 @@ public class GameManager : MonoBehaviour
                     if (minimumBet + sliderValue >= playerWallet)
                     {
                         playerAllIn = true;
+                        minimumBet = playerWallet;
                     }
-                    minimumBet += sliderValue;
+                    else
+                        minimumBet += sliderValue;
                     playerWallet -= minimumBet;
                     AddToPot(minimumBet);
                     infoPackage.playerRaised = true;
@@ -292,6 +313,7 @@ public class GameManager : MonoBehaviour
                 break;
                 case 'f':
                     RobotCardRenderer.RenderHand(RobotHand);
+                    infoPackage.Folded = true;
                     RobotWin();
                     phase = -2;
                     return;
@@ -306,16 +328,37 @@ public class GameManager : MonoBehaviour
         infoPackage.MinimumBet = minimumBet;
         infoPackage.Pot = pot;
         
-        switch (RobotController.Bet1(infoPackage))
+        switch (RobotController.Bet1(infoPackage, out int raise))
         {
             case Bettings.call:
                 robotWallet -= minimumBet;
                 AddToPot(minimumBet);
                 infoPackage.SunkCost += minimumBet;
+                UIManager.DisplayEventBubble("The Robot calls the bet.");
+                break;
+            case Bettings.fold:
+                RobotCardRenderer.RenderHand(RobotHand);
+                infoPackage.Folded = true;
+                PlayerWin();
+                phase = -2;
+                return;
+            case Bettings.raise:
+                if (minimumBet + raise > robotWallet)
+                {
+                    minimumBet = robotWallet;
+                    robotAllIn = true;
+                    UIManager.DisplayEventBubble("The robot goes all in!");
+                }
+                else
+                {
+                    minimumBet += raise;
+                    UIManager.DisplayEventBubble("The robot raises by $" + raise);
+                }
+                robotWallet -= minimumBet;
+                AddToPot(minimumBet);
                 break;
         }
         phase++;
-        UIManager.DisplayEventBubble("You may now swap up to 5 cards. Use the QWERT keys to select which cards you wish to trade.");
     }
 
     void SwapPlayerHand()
@@ -385,12 +428,46 @@ public class GameManager : MonoBehaviour
 
     void RobotBet2()
     {
-        infoPackage.MinimumBet = minimumBet;
+        /*infoPackage.MinimumBet = minimumBet;
         infoPackage.Pot = pot;
         
         switch (RobotController.Bet2())
         {
             case Bettings.call:
+                robotWallet -= minimumBet;
+                AddToPot(minimumBet);
+                break;
+        }
+        phase++;*/
+        infoPackage.MinimumBet = minimumBet;
+        infoPackage.Pot = pot;
+        
+        switch (RobotController.Bet2(infoPackage, out int raise))
+        {
+            case Bettings.call:
+                robotWallet -= minimumBet;
+                AddToPot(minimumBet);
+                infoPackage.SunkCost += minimumBet;
+                UIManager.DisplayEventBubble("The Robot calls the bet.");
+                break;
+            case Bettings.fold:
+                infoPackage.Folded = true;
+                RobotCardRenderer.RenderHand(RobotHand);
+                PlayerWin();
+                phase = -2;
+                return;
+            case Bettings.raise:
+                if (minimumBet + raise > robotWallet)
+                {
+                    minimumBet = robotWallet;
+                    robotAllIn = true;
+                    UIManager.DisplayEventBubble("The robot goes all in!");
+                }
+                else
+                {
+                    minimumBet += raise;
+                    UIManager.DisplayEventBubble("The robot raises by $" + raise);
+                }
                 robotWallet -= minimumBet;
                 AddToPot(minimumBet);
                 break;
@@ -791,12 +868,16 @@ public class GameManager : MonoBehaviour
     {
         UIManager.DisplayEventBubble("The Robot wins the round with a " + RobotHand.HandTypeName()+", earning the full pot of $"+pot);
         robotWallet += pot;
+        infoPackage.RobotLost = false;
+        RobotController.PostRoundAnalysis(infoPackage);
     }
 
     void PlayerWin()
     {
         UIManager.DisplayEventBubble("The Player wins the round with a " + PlayerHand.HandTypeName()+", earning the full pot of $"+pot);
+        infoPackage.RobotLost = true;
         playerWallet += pot;
+        RobotController.PostRoundAnalysis(infoPackage);
     }
 
     void Tie()

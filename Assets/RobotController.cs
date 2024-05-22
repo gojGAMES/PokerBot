@@ -6,7 +6,13 @@ public class RobotController : MonoBehaviour
 {
     public Hand RobotHand;
     public float BluffThreshold = 0.5f;
-    private float riskiness; //how ready the robot is to call/raise and play worse hands (or maybe playing bad hands goes more into avghand??)
+    public float FoldThreshold;
+    public float CallThreshold;
+    public float callPriceWeight = 0.3f;
+    public float ConfidenceFactor = 1;
+    public float HandValueFactor;
+    [SerializeField]private float riskiness = 10; //how ready the robot is to call/raise and play worse hands (or maybe playing bad hands goes more into avghand??)
+    public float LearningFactor = 0.005f;
     private float averageHand; //todo: rename this. this is the value the of hand the robot will strive towards
     private int handsInData = 0;
     private int playerRaises = 0;
@@ -252,6 +258,10 @@ public class RobotController : MonoBehaviour
 
     float PlayerBluffRate()
     {
+        if (playerRaises == 0)
+        {
+            return 0.01f;
+        }
         return (float)playerRaiseBluffs / (float)playerRaises;
     }
 
@@ -266,7 +276,7 @@ public class RobotController : MonoBehaviour
     }
     
     //todo: add an int out for bet
-    public Bettings Bet1(InfoPackage infoPackage)
+    public Bettings Bet1(InfoPackage infoPackage, out int raise)
     {
         ///factors:
         /// own hand. is it worth playing (tied to risk)
@@ -289,23 +299,72 @@ public class RobotController : MonoBehaviour
         /// first, determine odds. then the stakes.
         /// then look at past data. bluff rate, riskiness, skiddishness
 
-        float lossOdds = SumOfBetterOdds(RobotHand.HandType);
+
+        raise = 0;
         
-        float FoldValue = -infoPackage.SunkCost;
+        /*float lossOdds = SumOfBetterOdds(RobotHand.HandType);
+        
+        float FoldValue = -1 * infoPackage.SunkCost;
         Debug.Log("Fold value: " + FoldValue);
         float CallValue = CalculateRisk(lossOdds, infoPackage.MinimumBet, infoPackage);
-        Debug.Log("Call Value: " + CallValue);
+        Debug.Log("Call Value: " + CallValue);*/
+
+
+        /*
+        raise = 0;
         
+        float playerHandValue = SumOfBetterOdds(RobotHand.HandType) * AveragePlayerHand() * (PlayerConfidenceFactor(infoPackage) / PlayerBluffRate());
+        float deltaHand = playerHandValue - RobotHand.GetHandValue();
+
+        float risk = deltaHand + infoPackage.MinimumBet * callPriceWeight;
+        if (risk > riskiness)
+        {
+            return Bettings.fold;
+        }
+
+        float sweetspot = (riskiness + deltaHand) / 25 * callPriceWeight;
+
+        if (sweetspot <= infoPackage.MinimumBet / 25)
+        {
+            return Bettings.call;
+        }
+
+        raise = (int) sweetspot * 25;
+        return Bettings.raise;
+        */
+
+        float risk = riskiness - (PlayerConfidenceFactor(infoPackage) * ConfidenceFactor) +
+                     PreSwapHandValue() * HandValueFactor;
         
+        Debug.Log("Risk: " + risk);
+
+        if (risk < FoldThreshold + infoPackage.MinimumBet * callPriceWeight)
+            return Bettings.fold;
         
-        return Bettings.call;
+        if (risk < CallThreshold)
+            return Bettings.call;
+
+        raise = DetermineRaise(risk);
+        
+        if (raise < infoPackage.MinimumBet)
+            return Bettings.call;
+        
+        return Bettings.raise;
+    }
+
+    int DetermineRaise(float risk)
+    {
+        float proportion = (risk - CallThreshold) / 22f;
+        proportion *= 1000;
+        proportion -= (int)proportion % 25;
+        return (int)proportion;
     }
 
     float PlayerConfidenceFactor(InfoPackage infoPackage)
     {
-        float factor = ((float) infoPackage.Pot - infoPackage.SunkCost) / 1000f;
+        float factor = ((float) infoPackage.Pot - infoPackage.SunkCost) / 500f;
         
-        return 1 + factor;
+        return factor;
     }
 
     float CalculateRisk(float lossOdds, int bet, InfoPackage infoPackage)
@@ -316,9 +375,23 @@ public class RobotController : MonoBehaviour
         return rewardValue - riskValue;
     }
 
-    public Bettings Bet2()
+    public Bettings Bet2(InfoPackage infoPackage, out int raise)
     {
-        return Bettings.call;
+        raise = 0;
+        float risk = riskiness - (PlayerConfidenceFactor(infoPackage) * ConfidenceFactor) +
+                     RobotHand.GetHandValue() * HandValueFactor;
+
+        if (risk < FoldThreshold + infoPackage.MinimumBet * callPriceWeight)
+            return Bettings.fold;
+        
+        if (risk < CallThreshold)
+            return Bettings.call;
+
+        raise = DetermineRaise(risk);
+        if (raise < infoPackage.MinimumBet)
+            return Bettings.call;
+        
+        return Bettings.raise;
     }
 
 
@@ -457,6 +530,50 @@ public class RobotController : MonoBehaviour
 
         return value;
     }
+
+    void ModifyRiskiness(int points, float modifier)
+    {
+        riskiness += (float)points * modifier;
+        Mathf.Clamp(riskiness, 3f, 20f);
+    }
+
+    public void PostRoundAnalysis(InfoPackage infoPackage)
+    {
+        if (infoPackage.RobotLost)
+        {
+            if (infoPackage.Folded)
+            {
+                if (RobotHand.GetHandValue() > infoPackage.PlayerHand.GetHandValue())
+                {
+                    //, more risky
+                    ModifyRiskiness(infoPackage.Pot, LearningFactor);
+                }
+                else
+                {
+                    //good
+                    ModifyRiskiness(-infoPackage.MinimumBet, LearningFactor);
+                }
+            }
+            //less risky
+        }
+        else
+        {
+            if (infoPackage.Folded)
+            {
+                if (RobotHand.GetHandValue() > infoPackage.PlayerHand.GetHandValue())
+                {
+                    //bad, drain 
+                    ModifyRiskiness(-infoPackage.MinimumBet/2, LearningFactor);
+                }
+                else
+                {
+                    //good, bluff his ass
+                    ModifyRiskiness(infoPackage.Pot, LearningFactor);
+                }
+            }
+            //good, play more risky
+        }
+    }
 }
 
 public class InfoPackage
@@ -470,6 +587,9 @@ public class InfoPackage
     
     //post-round:
     public Hand PlayerHand;
+    public bool RobotLost;
+    public bool Folded;
+    
 
 
     public void ResetPackage()
@@ -478,6 +598,8 @@ public class InfoPackage
         SunkCost = 0;
         Pot = 0;
         PlayerCardSwapCount = 0;
+        RobotLost = false;
+        Folded = false;
         playerRaised = false;
     }
 }

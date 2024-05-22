@@ -1508,6 +1508,26 @@ PrefabInstance:
       propertyPath: BettingControlsParent
       value: 
       objectReference: {fileID: 1273500366}
+    - target: {fileID: 384588207541072388, guid: 68a3b9bdae57d094d905167d29fde55b, type: 3}
+      propertyPath: CallThreshold
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 384588207541072388, guid: 68a3b9bdae57d094d905167d29fde55b, type: 3}
+      propertyPath: FoldThreshold
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 384588207541072388, guid: 68a3b9bdae57d094d905167d29fde55b, type: 3}
+      propertyPath: HandValueFactor
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 384588207541072388, guid: 68a3b9bdae57d094d905167d29fde55b, type: 3}
+      propertyPath: callPriceWeight
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 384588207541072388, guid: 68a3b9bdae57d094d905167d29fde55b, type: 3}
+      propertyPath: ConfidenceFactor
+      value: 1.25
+      objectReference: {fileID: 0}
     - target: {fileID: 407331511433092300, guid: 68a3b9bdae57d094d905167d29fde55b, type: 3}
       propertyPath: m_Name
       value: Managers
